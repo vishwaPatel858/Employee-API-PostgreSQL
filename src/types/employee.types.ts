@@ -31,6 +31,9 @@ export interface IUserReq {
   id: string;
 }
 
+export interface IForgetPassword {
+  email: string;
+}
 export interface IRequestType extends Request {
   id?: string;
   token?: string;
@@ -65,4 +68,8 @@ export interface IRequestChangePassword extends Request {
   body: IChangePassword;
   id?: string;
   token?: string;
+}
+
+export interface IRequestForgetPassword extends Request {
+  body: IForgetPassword;
 }

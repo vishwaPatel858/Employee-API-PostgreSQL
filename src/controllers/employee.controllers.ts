@@ -21,7 +21,8 @@ import {
   IRequestDeleteEmp,
   IRequestLogin,
   IRequestResetPassword,
-  IRequestChangePassword
+  IRequestChangePassword,
+  IRequestForgetPassword,
 } from "../types/employee.types.ts";
 export const getEmployee = (req: Request, res: Response) => {
   try {
@@ -136,7 +137,10 @@ export const logout = (req: IRequestType, res: Response) => {
     res.status(500).json({ message: message });
   }
 };
-export const forgetPasswordAPI = (req: Request, res: Response) => {
+export const forgetPasswordAPI = (
+  req: IRequestForgetPassword,
+  res: Response
+) => {
   try {
     const { email } = req.body;
     forgetPassword(email)
@@ -152,7 +156,7 @@ export const forgetPasswordAPI = (req: Request, res: Response) => {
   }
 };
 
-export const verifyOTP = (req: Request, res: Response) => {
+export const verifyOTP = (req: IRequestVerifyOTP, res: Response) => {
   try {
     const { email, otp } = req.body;
     verifyOTPAPI(email, otp)
@@ -184,12 +188,15 @@ export const resetPassword = (req: IRequestResetPassword, res: Response) => {
   }
 };
 
-export const changePassword = async (req: IRequestChangePassword, res: Response) => {
+export const changePassword = async (
+  req: IRequestChangePassword,
+  res: Response
+) => {
   try {
     const argPasswords = req.body;
     const id = req.id;
     const token = req.token;
-    changePasswordAPI(argPasswords, id,token)
+    changePasswordAPI(argPasswords, id, token)
       .then((response) => {
         res.status(200).json(response);
       })
@@ -202,7 +209,7 @@ export const changePassword = async (req: IRequestChangePassword, res: Response)
   }
 };
 
-export const resendOTP = async (req: Request, res: Response) => {
+export const resendOTP = async (req: IRequestForgetPassword, res: Response) => {
   try {
     const { email } = req.body;
     resendOTPAPI(email)
