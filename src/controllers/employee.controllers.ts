@@ -6,12 +6,23 @@ import {
   updateEmployee,
   deleteEmployee,
   employeeLogin,
+  logoutAPI,
   forgetPassword,
   verifyOTPAPI,
   resetPasswordAPI,
   changePasswordAPI,
+  resendOTPAPI,
+  verifyAccount,
 } from "../services/employee.services.ts";
-import { IRequestType } from "../types/employee.types.ts";
+import {
+  IRequestType,
+  IRequestEmployee,
+  IRequestVerifyOTP,
+  IRequestDeleteEmp,
+  IRequestLogin,
+  IRequestResetPassword,
+  IRequestChangePassword
+} from "../types/employee.types.ts";
 export const getEmployee = (req: Request, res: Response) => {
   try {
     getEmployees()
@@ -43,7 +54,7 @@ export const getEmployeeById = (req: Request, res: Response) => {
   }
 };
 
-export const addEmployee = (req: Request, res: Response) => {
+export const addEmployee = (req: IRequestEmployee, res: Response) => {
   try {
     const employee = req.body;
     createEmployee(employee)
@@ -59,11 +70,11 @@ export const addEmployee = (req: Request, res: Response) => {
   }
 };
 
-export const modifyEmployee = (req: Request, res: Response) => {
+export const modifyEmployee = (req: IRequestEmployee, res: Response) => {
   try {
     const employee = req.body;
     const { id } = req.params;
-    employee.id = id;
+    employee.id = parseInt(id);
     updateEmployee(employee)
       .then((response) => {
         res.status(200).json(response);
@@ -77,9 +88,9 @@ export const modifyEmployee = (req: Request, res: Response) => {
   }
 };
 
-export const removeEmployee = (req: Request, res: Response) => {
+export const removeEmployee = (req: IRequestDeleteEmp, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.id;
     deleteEmployee(id)
       .then((response) => {
         res.status(200).json(response);
@@ -93,7 +104,7 @@ export const removeEmployee = (req: Request, res: Response) => {
   }
 };
 
-export const login = (req: Request, res: Response) => {
+export const login = (req: IRequestLogin, res: Response) => {
   try {
     const { email, password } = req.body;
     employeeLogin(email, password)
@@ -109,6 +120,22 @@ export const login = (req: Request, res: Response) => {
   }
 };
 
+export const logout = (req: IRequestType, res: Response) => {
+  try {
+    const id = req.id;
+    const token = req.token;
+    logoutAPI(token, id)
+      .then((response) => {
+        res.status(200).json(response);
+      })
+      .catch((err) => {
+        res.status(500).json({ message: err.message });
+      });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error.";
+    res.status(500).json({ message: message });
+  }
+};
 export const forgetPasswordAPI = (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -141,7 +168,7 @@ export const verifyOTP = (req: Request, res: Response) => {
   }
 };
 
-export const resetPassword = (req: Request, res: Response) => {
+export const resetPassword = (req: IRequestResetPassword, res: Response) => {
   try {
     const { password, email } = req.body;
     resetPasswordAPI(password, email)
@@ -157,11 +184,60 @@ export const resetPassword = (req: Request, res: Response) => {
   }
 };
 
-export const changePassword = async (req: IRequestType, res: Response) => {
+export const changePassword = async (req: IRequestChangePassword, res: Response) => {
   try {
     const argPasswords = req.body;
-    const id = req.user.id;
-    changePasswordAPI(argPasswords, id)
+    const id = req.id;
+    const token = req.token;
+    changePasswordAPI(argPasswords, id,token)
+      .then((response) => {
+        res.status(200).json(response);
+      })
+      .catch((err) => {
+        res.status(500).json({ message: err.message });
+      });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error.";
+    res.status(500).json({ message: message });
+  }
+};
+
+export const resendOTP = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    resendOTPAPI(email)
+      .then((response) => {
+        res.status(200).json(response);
+      })
+      .catch((err) => {
+        res.status(500).json({ message: err.message });
+      });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error.";
+    res.status(500).json({ message: message });
+  }
+};
+
+export const verifyAccountAPI = (req: IRequestVerifyOTP, res: Response) => {
+  try {
+    const { email, otp } = req.body;
+    verifyAccount(email, otp)
+      .then((response) => {
+        res.status(200).json(response);
+      })
+      .catch((err) => {
+        res.status(500).json({ message: err.message });
+      });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error.";
+    res.status(500).json({ message: message });
+  }
+};
+
+export const getProfile = (req: IRequestType, res: Response) => {
+  try {
+    const id = req.id;
+    getEmployeeId(id)
       .then((response) => {
         res.status(200).json(response);
       })

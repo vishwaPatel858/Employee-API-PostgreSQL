@@ -53,13 +53,6 @@ export const loginSchema = joi.object({
   }),
 });
 
-export const tokenSchema = joi.object({
-  token: joi.string().required().messages({
-    "string.empty": "Token is required.",
-    "any.required": "Token is required.",
-  }),
-});
-
 export const emailSchema = joi.object({
   email: joi.string().required().email().messages({
     "string.empty": "Email is required.",
@@ -99,10 +92,15 @@ export const resetPassSchema = joi.object({
       "string.pattern.base":
         "Password must contain 1 Uppercase letter , 1 lowercase letter , 1 digit and 1 special character.Password length must be minimum 8 and maximum 10 characters.",
     }),
-  confirm_password: joi.string().required().messages({
-    "string.empty": "Confirm Password is required.",
-    "any.required": "Confirm Password is required.",
-  }),
+  confirm_password: joi
+    .string()
+    .required()
+    .valid(joi.ref("password"))
+    .messages({
+      "string.empty": "Confirm Password is required.",
+      "any.required": "Confirm Password is required.",
+      "any.only": "Confirm Password not matched with 'Password'",
+    }),
 });
 
 export const changePasswordSchema = joi.object({

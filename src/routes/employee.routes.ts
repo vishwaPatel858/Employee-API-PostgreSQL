@@ -10,38 +10,46 @@ import {
   forgetPasswordAPI,
   verifyOTP,
   resetPassword,
+  changePassword,
+  resendOTP,
+  verifyAccountAPI,
+  logout,
+  getProfile,
 } from "../controllers/employee.controllers.ts";
 import {
-  validateEmployee,
-  validateLogin,
-  validateToken,
-  validateSchema,
-  validateResetPassSchema,
-  verifyAccessToken
+  verifyAccessToken,
+  validate,
 } from "../middleware/employee.middleware.ts";
 import {
   employeeSchema,
   loginSchema,
-  tokenSchema,
   emailSchema,
   otpVerifySchema,
   resetPassSchema,
-  changePasswordSchema
+  changePasswordSchema,
 } from "../validations/employee.validations.ts";
-import * as validator from "../middleware/employee.middleware.ts"
+
 router.get("/", getEmployee);
 router.get("/:id", getEmployeeById);
-router.post("/", validateEmployee(employeeSchema), addEmployee);
-router.put("/:id", validateEmployee(employeeSchema), modifyEmployee);
-router.delete("/:id", removeEmployee);
-router.post("/login", validateLogin(loginSchema), login);
-router.post("/profile", validateToken(tokenSchema), getEmployeeById);
-router.post("/forgerPassword", validateSchema(emailSchema), forgetPasswordAPI);
-router.post("/verifyotp", validateSchema(otpVerifySchema), verifyOTP);
+router.post("/add", validate(employeeSchema), addEmployee);
+router.put("/:id", verifyAccessToken, validate(employeeSchema), modifyEmployee);
+router.delete("/", verifyAccessToken, removeEmployee);
+router.post("/login", validate(loginSchema), login);
+router.post("/logout", verifyAccessToken, logout);
+router.post("/profile", verifyAccessToken, getProfile);
+router.post("/forgerPassword", validate(emailSchema), forgetPasswordAPI);
+router.post("/verifyotp", validate(otpVerifySchema), verifyOTP);
 router.post(
   "/resetPassword",
-  validateResetPassSchema(resetPassSchema),
+  verifyAccessToken,
+  validate(resetPassSchema),
   resetPassword
 );
-router.post("/verifyotp", validateSchema(otpVerifySchema), verifyOTP);
-//router.post("/changepassword",validator.verifyAccessToken,validateSchema(changePasswordSchema))
+router.post(
+  "/changepassword",
+  verifyAccessToken,
+  validate(changePasswordSchema),
+  changePassword
+);
+router.post("/resendotp", validate(emailSchema), resendOTP);
+router.post("/verifyaccount", validate(otpVerifySchema), verifyAccountAPI);
