@@ -46,9 +46,6 @@ export const createEmployee = async (employee: IEmployee) => {
   const client: PoolClient = await pool.connect();
   try {
     const isDuplicateEmail = await checkDuplicateEmail(employee.email, client);
-    if (isDuplicateEmail) {
-      throw new Error(`Employee already exists with ${employee.email} email`);
-    }
     const encryptedPass = await generateEncryptedPassword(employee.password);
     employee.password = encryptedPass;
     let query = `INSERT INTO employee (first_name, last_name, email, password) VALUES ($1,$2,$3,$4) RETURNING *`;
@@ -59,7 +56,7 @@ export const createEmployee = async (employee: IEmployee) => {
       employee.password,
     ]);
     return sendOTP(employee.email, rows[0].id, client)
-      .then(async (otp) => {
+      .then((otp) => {
         return {
           message: "Employee created successfully",
           note: "Please verify your email to continue",
@@ -161,7 +158,7 @@ export const logoutAPI = async (token: string, id: string) => {
     await redisClient.set(`blacklist:${token}`, "blacklisted", { EX: 60 * 60 });
     await redisClient.del(id);
     return {
-      message: "Logged out",
+      message: "Employee Logged out",
     };
   } catch (err) {
     throw err;

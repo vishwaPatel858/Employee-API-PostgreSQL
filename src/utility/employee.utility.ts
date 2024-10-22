@@ -149,7 +149,7 @@ export const checkDuplicateEmail = async (
     let query = `SELECT * FROM employee WHERE email = $1`;
     const { rows } = await client.query(query, [email]);
     if (rows.length > 0) {
-      return true;
+      throw new Error(`Employee already exists with ${email} email`);
     } else {
       return false;
     }
