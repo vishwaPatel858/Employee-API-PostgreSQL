@@ -4,7 +4,7 @@ import { PoolClient } from "pg";
 import { redisClient } from "../utility/redisClient.ts";
 import { IUserReq, MailOptions, IEmployee } from "../types/employee.types.ts";
 import { generateOTP, sendMail } from "../utility/mail.utility.ts";
-import { response } from "express";
+import { Response } from "express";
 export const generateEncryptedPassword = async (password: string) => {
   const salt = await bcrypt.genSalt(10);
   const encryptedPass = await bcrypt.hash(password, salt);
@@ -99,7 +99,6 @@ export const sendOTP = async (
   }
 };
 
-
 export const verifyOTPwithExpirationTime = async (
   id: string,
   otp: string,
@@ -172,4 +171,10 @@ export const checkEmployeeExistsWithId = async (
   } catch (err) {
     throw err;
   }
+};
+
+export const getErrorMsg = (err: unknown, res: Response) => {
+  console.log("Errorrrrrrrrrrrrrrrrrrr")
+  const message = err instanceof Error ? err.message : "Unknown error.";
+  return res.status(500).json({ message: message });
 };

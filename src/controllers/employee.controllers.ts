@@ -24,6 +24,7 @@ import {
   IRequestChangePassword,
   IRequestForgetPassword,
 } from "../types/employee.types.ts";
+import { getErrorMsg } from "../utility/employee.utility.ts";
 export const getEmployee = (req: Request, res: Response) => {
   try {
     getEmployees()
@@ -34,8 +35,7 @@ export const getEmployee = (req: Request, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -50,8 +50,7 @@ export const getEmployeeById = (req: Request, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -66,8 +65,7 @@ export const addEmployee = (req: IRequestEmployee, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -84,8 +82,7 @@ export const modifyEmployee = (req: IRequestEmployee, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -100,8 +97,7 @@ export const removeEmployee = (req: IRequestDeleteEmp, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -116,8 +112,7 @@ export const login = (req: IRequestLogin, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -133,8 +128,7 @@ export const logout = (req: IRequestType, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 export const forgetPasswordAPI = (
@@ -151,8 +145,7 @@ export const forgetPasswordAPI = (
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -167,8 +160,7 @@ export const verifyOTP = (req: IRequestVerifyOTP, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -185,8 +177,7 @@ export const resetPassword = (req: IRequestResetPassword, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -206,8 +197,7 @@ export const changePassword = async (
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -222,8 +212,7 @@ export const resendOTP = async (req: IRequestForgetPassword, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -238,8 +227,7 @@ export const verifyAccountAPI = (req: IRequestVerifyOTP, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
 
@@ -254,7 +242,6 @@ export const getProfile = (req: IRequestType, res: Response) => {
         res.status(500).json({ message: err.message });
       });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error.";
-    res.status(500).json({ message: message });
+    getErrorMsg(err, res);
   }
 };
