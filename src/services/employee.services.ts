@@ -5,24 +5,20 @@ import {
   generateEncryptedPassword,
   validatePassword,
   generateAccessToken,
-  insertTokenData,
   deleteTokenData,
   sendOTP,
-  verifyOTP,
   checkEmployeeExists,
   checkEmployeeExistsWithId,
   checkDuplicateEmail,
   verifyOTPwithExpirationTime,
 } from "../utility/employee.utility.ts";
 import { redisClient } from "../utility/redisClient.ts";
-import { generateOTP, sendMail } from "../utility/mail.utility.ts";
 export const getEmployees = async () => {
   const client: PoolClient = await pool.connect();
   try {
     const query = "SELECT * FROM public.employee";
     const { rows } = await client.query(query);
     return {
-      message: "Employees Fetched successfully.",
       employees: rows,
     };
   } catch (err) {
@@ -38,7 +34,6 @@ export const getEmployeeId = async (id: string) => {
     let empData = await checkEmployeeExistsWithId(id, client);
     return {
       employee: empData,
-      status: 200,
     };
   } catch (err) {
     throw err;
@@ -63,18 +58,13 @@ export const createEmployee = async (employee: IEmployee) => {
       employee.email,
       employee.password,
     ]);
-    return sendOTP(employee.email)
+    return sendOTP(employee.email, rows[0].id, client)
       .then(async (otp) => {
-        return insertTokenData(rows[0].id, otp, client)
-          .then((response) => {
-            return {
-              message: "Employee created successfully",
-              employee: rows[0],
-            };
-          })
-          .catch((error) => {
-            throw error;
-          });
+        return {
+          message: "Employee created successfully",
+          note: "Please verify your email to continue",
+          employee: rows[0],
+        };
       })
       .catch((error) => {
         throw error;
@@ -152,8 +142,10 @@ export const employeeLogin = async (email: string, password: string) => {
     }
     const accessToken = await generateAccessToken(empData.id.toString());
     return {
-      message: "Login Successfully!!",
-      accessToken: accessToken,
+      message: empData.is_verified
+        ? "Login Successfully!!"
+        : "Employee not verified.",
+      access_token: accessToken,
       empoyee: empData,
     };
   } catch (err) {
@@ -168,7 +160,6 @@ export const logoutAPI = async (token: string, id: string) => {
   try {
     await redisClient.set(`blacklist:${token}`, "blacklisted", { EX: 60 * 60 });
     await redisClient.del(id);
-    console.log(redisClient.get(`blacklist:${token}`));
     return {
       message: "Logged out",
     };
@@ -183,23 +174,11 @@ export const forgetPassword = async (email: string) => {
   const client: PoolClient = await pool.connect();
   try {
     const empData = await checkEmployeeExists(email, client);
-    const otp = generateOTP();
-    const mailOpt = {
-      to: email,
-      message: `Your OTP is <strong>${otp}</strong>`,
-      subject: "ForgetPassword OTP",
-    };
-    return await sendMail(mailOpt)
-      .then(async (response) => {
-        return await insertTokenData(empData.id.toString(), otp, client)
-          .then((response) => {
-            return {
-              message: `OTP sent to '${email}' successfully`,
-            };
-          })
-          .catch((err) => {
-            throw err;
-          });
+    return await sendOTP(email, empData.id.toString(), client)
+      .then(async (otp) => {
+        return {
+          message: `OTP sent to '${email}' successfully`,
+        };
       })
       .catch((err) => {
         throw err;
@@ -224,6 +203,7 @@ export const verifyOTPAPI = async (email: string, otp: string) => {
       throw new Error("Invalid OTP");
     }
     const accessToken = await generateAccessToken(empData.id.toString());
+    await deleteTokenData(empData.id.toString(), client);
     return {
       message: "OTP verified Successfully!",
       access_token: accessToken,
@@ -235,16 +215,23 @@ export const verifyOTPAPI = async (email: string, otp: string) => {
   }
 };
 
-export const resetPasswordAPI = async (password: string, email: string) => {
+export const resetPasswordAPI = async (
+  password: string,
+  id: string,
+  token: string
+) => {
   let client: PoolClient = await pool.connect();
   try {
-    const empData = await checkEmployeeExists(email, client);
+    const empData = await checkEmployeeExistsWithId(id, client);
     const encryptedPass = await generateEncryptedPassword(password);
-    let query = `UPDATE employee SET password =$1 WHERE email =$2 RETURNING *`;
-    const { rows: updated } = await client.query(query, [encryptedPass, email]);
+    let query = `UPDATE employee SET password =$1 WHERE id =$2 RETURNING *`;
+    const { rows: updated } = await client.query(query, [encryptedPass, id]);
+    logoutAPI(token, id);
+    const accessToken = await generateAccessToken(empData.id.toString());
     return {
-      message: "Password changed successfully!",
+      message: "Password Reset successfully!",
       employee: updated[0],
+      access_token: accessToken,
     };
   } catch (err) {
     throw err;
@@ -291,21 +278,11 @@ export const resendOTPAPI = async (email: string) => {
   let client: PoolClient = await pool.connect();
   try {
     const empData = await checkEmployeeExists(email, client);
-    return sendOTP(email)
-      .then((otp) => {
-        return insertTokenData(empData.id.toString(), otp, client)
-          .then((response) => {
-            if (response) {
-              return {
-                message: `OTP resent to '${email}'`,
-              };
-            } else {
-              throw new Error("Something went wrong");
-            }
-          })
-          .catch((err) => {
-            throw err;
-          });
+    return sendOTP(email, empData.id.toString(), client)
+      .then(async (otp) => {
+        return {
+          message: `OTP resent to '${email}'`,
+        };
       })
       .catch((err) => {
         throw err;
@@ -321,13 +298,18 @@ export const verifyAccount = async (email: string, otp: string) => {
   let client: PoolClient = await pool.connect();
   try {
     const empData = await checkEmployeeExists(email, client);
-    const isVerified = await verifyOTP(empData.id.toString(), otp, client);
+    const isVerified = await verifyOTPwithExpirationTime(
+      empData.id.toString(),
+      otp,
+      client
+    );
     if (!isVerified) {
       throw new Error("Invalid otp");
     }
     let query = `UPDATE employee SET is_verified  = $1 WHERE email = $2 RETURNING *`;
     const { rows } = await client.query(query, [true, email]);
     const accessToken = await generateAccessToken(empData.id.toString());
+    await deleteTokenData(empData.id.toString(), client);
     return {
       message: "Employee Verified Successfully",
       access_token: accessToken,

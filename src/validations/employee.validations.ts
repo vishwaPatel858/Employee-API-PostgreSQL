@@ -73,11 +73,6 @@ export const otpVerifySchema = joi.object({
 });
 
 export const resetPassSchema = joi.object({
-  email: joi.string().required().email().messages({
-    "string.empty": "Email is required",
-    "any.required": "Email is required",
-    "string.email": "Invalid email format",
-  }),
   password: joi
     .string()
     .required()

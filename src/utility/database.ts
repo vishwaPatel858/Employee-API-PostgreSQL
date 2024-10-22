@@ -8,9 +8,13 @@ export const pool = new Pool({
 });
 
 pool.on("connect", () => {
-  console.log("Connected to database");
+  console.log("Connected to Database");
 });
 
 pool.on("error", (err, client) => {
   console.log("Error while connecting to database : " + err.message);
+});
+
+pool.on("release", () => {
+  console.log("Database Connection Released");
 });

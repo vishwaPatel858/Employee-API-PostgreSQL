@@ -74,7 +74,7 @@ export const addEmployee = (req: IRequestEmployee, res: Response) => {
 export const modifyEmployee = (req: IRequestEmployee, res: Response) => {
   try {
     const employee = req.body;
-    const { id } = req.params;
+    const id = req.id;
     employee.id = parseInt(id);
     updateEmployee(employee)
       .then((response) => {
@@ -174,8 +174,10 @@ export const verifyOTP = (req: IRequestVerifyOTP, res: Response) => {
 
 export const resetPassword = (req: IRequestResetPassword, res: Response) => {
   try {
-    const { password, email } = req.body;
-    resetPasswordAPI(password, email)
+    const { password } = req.body;
+    const token = req.token;
+    const id = req.id;
+    resetPasswordAPI(password, id, token)
       .then((response) => {
         res.status(200).json(response);
       })

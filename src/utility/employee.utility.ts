@@ -28,6 +28,7 @@ export const generateAccessToken = async (id: string) => {
     const accessToken = await jwt.sign(payload, secretKey, {
       expiresIn: 3600,
     });
+    await redisClient.del(id);
     await redisClient.set(id, accessToken);
     return accessToken;
   } catch (err) {
@@ -41,7 +42,7 @@ export const insertTokenData = async (
   client: PoolClient
 ) => {
   try {
-    const deletedData = await deleteTokenData(emp_id, client);
+    //const deletedData = await deleteTokenData(emp_id, client);
     let expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     let query = `INSERT INTO tokens (emp_id,token,expires_at) VALUES ($1,$2,$3) RETURNING token , emp_id , expires_at`;
     const { rows } = await client.query(query, [emp_id, otp, expiresAt]);
@@ -73,7 +74,11 @@ export const verifyTokenData = (token: string): Promise<IUserReq> => {
   });
 };
 
-export const sendOTP = async (email: string) => {
+export const sendOTP = async (
+  email: string,
+  id: string,
+  client: PoolClient
+) => {
   try {
     const otp = generateOTP();
     const mailOptions: MailOptions = {
@@ -82,7 +87,8 @@ export const sendOTP = async (email: string) => {
       subject: "ForgetPassword OTP",
     };
     return await sendMail(mailOptions)
-      .then((response) => {
+      .then(async (response) => {
+        await insertTokenData(id, otp, client);
         return otp;
       })
       .catch((err) => {
@@ -93,30 +99,6 @@ export const sendOTP = async (email: string) => {
   }
 };
 
-export const verifyOTP = async (
-  id: string,
-  otp: string,
-  client: PoolClient
-) => {
-  try {
-    const query = `
-      WITH deleted AS (
-        DELETE FROM tokens
-        WHERE emp_id = $1 AND token = $2
-        RETURNING *
-      )
-      SELECT COUNT(*) > 0 AS exists
-      FROM deleted
-    `;
-    const {
-      rows: [result],
-    } = await client.query(query, [id, otp]);
-    return result.exists;
-  } catch (err) {
-    console.error(err);
-    return false;
-  }
-};
 
 export const verifyOTPwithExpirationTime = async (
   id: string,
@@ -150,7 +132,7 @@ export const checkEmployeeExists = async (
     let query = `SELECT * FROM employee WHERE email = $1`;
     const { rows } = await client.query(query, [email]);
     if (rows.length == 0) {
-      throw new Error(`Employee with ${email} not found`);
+      throw new Error(`Employee with email '${email}' not found`);
     } else {
       return rows[0] as IEmployee;
     }

@@ -32,7 +32,7 @@ import {
 router.get("/", getEmployee);
 router.get("/:id", getEmployeeById);
 router.post("/add", validate(employeeSchema), addEmployee);
-router.put("/:id", verifyAccessToken, validate(employeeSchema), modifyEmployee);
+router.put("/", verifyAccessToken, validate(employeeSchema), modifyEmployee);
 router.delete("/", verifyAccessToken, removeEmployee);
 router.post("/login", validate(loginSchema), login);
 router.post("/logout", verifyAccessToken, logout);
