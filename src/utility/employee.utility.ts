@@ -54,7 +54,7 @@ export const insertTokenData = async (
 
 export const deleteTokenData = async (emp_id: string, client: PoolClient) => {
   try {
-    let query = `DELETE FROM tokens WHERE emp_id =$1`;
+    let query = `DELETE FROM tokens WHERE emp_id = $1 and expires_at <= NOW()`;
     const { rowCount } = await client.query(query, [emp_id]);
   } catch (err) {
     throw err;
@@ -162,7 +162,8 @@ export const checkEmployeeExistsWithId = async (
 ) => {
   try {
     let query = `SELECT * FROM  employee WHERE id  = $1`;
-    const { rows } = await client.query(query, [id]);
+    const { rows, rowCount } = await client.query(query, [id]);
+    console.log(`Number of rows: ${rowCount}`);
     if (rows.length == 0) {
       throw new Error("Employee not found");
     } else {
@@ -174,7 +175,6 @@ export const checkEmployeeExistsWithId = async (
 };
 
 export const getErrorMsg = (err: unknown, res: Response) => {
-  console.log("Errorrrrrrrrrrrrrrrrrrr")
   const message = err instanceof Error ? err.message : "Unknown error.";
   return res.status(500).json({ message: message });
 };

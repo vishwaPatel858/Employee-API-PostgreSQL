@@ -1,6 +1,9 @@
 import { PoolClient } from "pg";
 import { pool } from "../utility/database.ts";
-import { IEmployee, IChangePassword } from "../types/employee.types.ts";
+import {
+  IEmployee,
+  IChangePassword,
+} from "../types/employee.types.ts";
 import {
   generateEncryptedPassword,
   validatePassword,
@@ -17,7 +20,8 @@ export const getEmployees = async () => {
   const client: PoolClient = await pool.connect();
   try {
     const query = "SELECT * FROM public.employee";
-    const { rows } = await client.query(query);
+    const { rows, rowCount } = await client.query(query);
+    console.log(`Number of rows: ${rowCount}`);
     return {
       employees: rows,
     };
@@ -32,6 +36,7 @@ export const getEmployeeId = async (id: string) => {
   const client: PoolClient = await pool.connect();
   try {
     let empData = await checkEmployeeExistsWithId(id, client);
+    delete empData.password;
     return {
       employee: empData,
     };
@@ -275,10 +280,10 @@ export const resendOTPAPI = async (email: string) => {
   let client: PoolClient = await pool.connect();
   try {
     const empData = await checkEmployeeExists(email, client);
-    return sendOTP(email, empData.id.toString(), client)
+    return await sendOTP(email, empData.id.toString(), client)
       .then(async (otp) => {
         return {
-          message: `OTP resent to '${email}'`,
+          message: `OTP sent to '${email}' successfully`,
         };
       })
       .catch((err) => {

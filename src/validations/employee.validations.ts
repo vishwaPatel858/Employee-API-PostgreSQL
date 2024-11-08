@@ -57,6 +57,7 @@ export const emailSchema = joi.object({
   email: joi.string().required().email().messages({
     "string.empty": "Email is required.",
     "any.required": "Email is required.",
+    "string.email": "Invalid email format.",
   }),
 });
 
@@ -94,7 +95,7 @@ export const resetPassSchema = joi.object({
     .messages({
       "string.empty": "Confirm Password is required.",
       "any.required": "Confirm Password is required.",
-      "any.only": "Confirm Password not matched with 'Password'",
+      "any.only": "Confirm Password not matched with Password",
     }),
 });
 
